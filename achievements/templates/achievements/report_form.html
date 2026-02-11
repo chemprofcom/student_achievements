@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Отчёт по студенту</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Сформировать PDF-отчёт</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Скачать PDF</button>
+    </form>
+    <p><a href="/upload/">Загрузить Excel</a> | <a href="/admin/">Админка</a></p>
+</body>
+</html>
