@@ -16,6 +16,18 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Доверенные источники для CSRF (ваш домен Railway)
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-a3ef4.up.railway.app',  # ваш точный URL
+]
+
+# Если вы планируете использовать несколько окружений, можно добавить шаблон:
+# CSRF_TRUSTED_ORIGINS = ['https://*.up.railway.app']
+
+# Обязательно для HTTPS
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -26,7 +38,7 @@ SECRET_KEY = 'django-insecure-(&on8qru89lay&@icp4*!k+!2zo(8w+dxz*hn#_72mq1!)^w^l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.railway.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.up.railway.app']
 
 
 # Application definition
