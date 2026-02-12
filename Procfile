@@ -1,1 +1,1 @@
-web: python -u manage.py runserver 0.0.0.0:$PORT --noreload
+web: gunicorn config.wsgi --bind 0.0.0.0:$PORT --access-logfile - --error-logfile -
