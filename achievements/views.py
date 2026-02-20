@@ -1,3 +1,5 @@
+import json
+import time
 import pandas as pd
 from django.shortcuts import render, redirect
 from django.contrib.admin.views.decorators import staff_member_required
@@ -231,6 +233,42 @@ def upload_participations(request):
             return redirect('upload')
     else:
         form = UploadFileForm()
+
+    #region agent log
+    try:
+        from django.contrib.staticfiles import finders
+        from django.conf import settings
+        import os
+
+        admin_css_path = finders.find("admin/css/base.css")
+        static_root_admin_css = os.path.join(settings.STATIC_ROOT, 'admin', 'css', 'base.css')
+        manifest_path = os.path.join(settings.STATIC_ROOT, 'staticfiles.json')
+        
+        log_path = settings.BASE_DIR / "debug-7459a2.log"
+        payload = {
+            "sessionId": "7459a2",
+            "runId": "pre-fix",
+            "hypothesisId": "H8",
+            "location": "achievements/views.py:upload_participations",
+            "message": "WhiteNoise static file serving test",
+            "data": {
+                "admin_css_found_by_finders": bool(admin_css_path),
+                "admin_css_finders_path": admin_css_path,
+                "static_root_admin_css_exists": os.path.isfile(static_root_admin_css),
+                "static_root_admin_css_path": static_root_admin_css,
+                "manifest_exists": os.path.isfile(manifest_path),
+                "manifest_path": manifest_path,
+                "static_root_exists": os.path.isdir(settings.STATIC_ROOT),
+                "storage_class": settings.STATICFILES_STORAGE,
+            },
+            "timestamp": int(time.time() * 1000),
+        }
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        # Instrumentation failures must never affect user flow
+        pass
+    #endregion agent log
 
     return render(request, 'achievements/upload.html', {'form': form})
 
