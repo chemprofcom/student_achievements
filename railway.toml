@@ -1,5 +1,2 @@
 [deploy]
-preDeployCommand = """
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput
-"""
+preDeployCommand = """python manage.py migrate && python manage.py collectstatic --noinput --clear"""
