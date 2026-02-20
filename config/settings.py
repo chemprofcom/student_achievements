@@ -10,8 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
-import json
-import time
 import dj_database_url
 from pathlib import Path
 
@@ -48,92 +46,6 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.up.railway.app']
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-
-#region agent log
-def _agent_debug_log(hypothesis_id: str, message: str, data: dict) -> None:
-    """
-    Lightweight debug logger for automated analysis. Writes NDJSON lines.
-    """
-    try:
-        log_path = BASE_DIR / "debug-7459a2.log"
-        payload = {
-            "sessionId": "7459a2",
-            "runId": "pre-fix",
-            "hypothesisId": hypothesis_id,
-            "location": "config/settings.py:STATIC_CONFIG",
-            "message": message,
-            "data": data,
-            "timestamp": int(time.time() * 1000),
-        }
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    except Exception:
-        # Instrumentation failures must never break the app
-        pass
-
-_agent_debug_log(
-    "H1",
-    "STATIC settings at import",
-    {
-        "DEBUG": DEBUG,
-        "STATIC_URL": STATIC_URL,
-        "STATIC_ROOT": str(STATIC_ROOT),
-        "static_root_exists": os.path.isdir(STATIC_ROOT),
-        "static_root_listing_sample": (
-            os.listdir(STATIC_ROOT)[:10] if os.path.isdir(STATIC_ROOT) else []
-        ),
-    },
-)
-
-#region agent log
-# Test H5: CompressedManifestStaticFilesStorage manifest.json existence
-manifest_path = os.path.join(STATIC_ROOT, 'staticfiles.json')
-_agent_debug_log(
-    "H5",
-    "Manifest file check for CompressedManifestStaticFilesStorage",
-    {
-        "manifest_path": manifest_path,
-        "manifest_exists": os.path.isfile(manifest_path),
-        "storage_class": STATICFILES_STORAGE,
-    },
-)
-
-# Test H6: Check if admin CSS file exists in STATIC_ROOT
-admin_css_path = os.path.join(STATIC_ROOT, 'admin', 'css', 'base.css')
-_agent_debug_log(
-    "H6",
-    "Admin CSS file existence check",
-    {
-        "admin_css_path": admin_css_path,
-        "admin_css_exists": os.path.isfile(admin_css_path),
-        "admin_dir_exists": os.path.isdir(os.path.join(STATIC_ROOT, 'admin')),
-    },
-)
-
-# Test H7: WhiteNoise configuration check
-try:
-    import whitenoise
-    whitenoise_version = getattr(whitenoise, "__version__", None)
-    _agent_debug_log(
-        "H7",
-        "WhiteNoise import and version check",
-        {
-            "whitenoise_imported": True,
-            "whitenoise_has_version_attr": hasattr(whitenoise, "__version__"),
-            "whitenoise_version": whitenoise_version,
-        },
-    )
-except Exception as e:
-    _agent_debug_log(
-        "H7",
-        "WhiteNoise import and version check",
-        {
-            "whitenoise_imported": False,
-            "error_type": type(e).__name__,
-            "error": str(e),
-        },
-    )
-#endregion agent log
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
