@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Доверенные источники для CSRF (ваш домен Railway)
 CSRF_TRUSTED_ORIGINS = [
-    'https://web-production-a3ef4.up.railway.app',  # ваш точный URL
+    'https://chempgas.up.railway.app',  # ваш точный URL
 ]
 
 # Если вы планируете использовать несколько окружений, можно добавить шаблон:
