@@ -17,11 +17,15 @@ class Student(models.Model):
 class Event(models.Model):
     """Мероприятие"""
     LEVEL_CHOICES = [
-        ('faculty', 'Факультетский'),
         ('course', 'Курсовой'),
-        ('university', 'Университетский/межфакультетский'),
-        ('interuniversity', 'Межуниверситетский/региональный'),
-        ('all_russian', 'Всероссийский/межрегиональный'),
+        ('faculty', 'Факультетский'),
+        ('interfaculty', 'Межфакультетский'),
+        ('university', 'Университетский'),
+        ('interuniversity', 'Межуниверситетский'),
+        ('regional', 'Региональный'),
+        ('interregional', 'Межрегиональный'),
+        ('all_russian', 'Всероссийский'),
+        ('international', 'Международный'),
         ('chemistry_day', 'День химика'),
         ('cabbage', 'Капустник'),
         ('dedication', 'Посвящение в химики'),
