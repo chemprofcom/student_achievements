@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Учёт достижений — химический факультет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,600;1,400&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- ============ Вход ============ -->
+<section class="gate" id="gate" hidden>
+  <aside class="gate__aside">
+    <p class="gate__mark">Химический факультет</p>
+    <h1 class="gate__title">Учёт <em>достижений</em> студентов и волонтёров</h1>
+    <div class="gate__meta">
+      Мероприятия · Участия · Часы<br>
+      Импорт XLSX · Выгрузка PDF
+    </div>
+  </aside>
+  <div class="gate__main">
+    <form class="gate__form" id="loginForm" autocomplete="on">
+      <p class="eyebrow">Доступ по учётной записи</p>
+      <h2>Вход в систему</h2>
+      <p class="gate__hint">Требуется учётная запись Netlify Identity с ролью <span class="mono">admin</span>.</p>
+      <div id="loginError" class="note note--error hidden" role="alert"></div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit" id="loginBtn">Войти</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ Приложение ============ -->
+<div class="shell" id="shell" hidden>
+  <nav class="rail">
+    <div class="rail__brand">
+      <strong>Учёт достижений</strong>
+      <span>Химфак</span>
+    </div>
+    <div class="rail__nav" id="nav">
+      <button class="rail__link" data-view="upload"><i>01</i>Загрузка XLSX</button>
+      <button class="rail__link" data-view="report"><i>02</i>Отчёт PDF</button>
+      <button class="rail__link" data-view="students"><i>03</i>Студенты</button>
+      <button class="rail__link" data-view="events"><i>04</i>Мероприятия</button>
+      <button class="rail__link" data-view="participations"><i>05</i>Участия</button>
+    </div>
+    <div class="rail__foot">
+      <p id="whoami"></p>
+      <button class="btn btn--ghost btn--small" id="logoutBtn" type="button">Выйти</button>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- Загрузка -->
+    <section class="view hidden" data-view="upload">
+      <div class="view__head">
+        <p class="eyebrow">Импорт</p>
+        <h1>Загрузка участий из Excel</h1>
+        <p>Обрабатываются все листы книги. На каждом листе ожидаются метаданные мероприятия в первых двух строках
+           (название, уровень, даты проведения, признак «организовано впервые») и таблица участников, начинающаяся
+           со столбца «ФИО»: ФИО, группа, роль, часы.</p>
+      </div>
+      <div class="panel">
+        <div id="uploadResult"></div>
+        <form id="uploadForm">
+          <div class="field">
+            <label for="file">Файл .xlsx</label>
+            <input type="file" id="file" name="file" accept=".xlsx" required>
+          </div>
+          <div class="actions">
+            <button class="btn" type="submit" id="uploadBtn">Загрузить</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Отчёт -->
+    <section class="view hidden" data-view="report">
+      <div class="view__head">
+        <p class="eyebrow">Выгрузка</p>
+        <h1>Отчёт по студенту</h1>
+        <p>PDF со списком мероприятий за период, ролями и суммой часов.</p>
+      </div>
+      <div class="panel" style="max-width: 34rem">
+        <div id="reportResult"></div>
+        <form id="reportForm">
+          <div class="field">
+            <label for="reportStudent">Студент</label>
+            <select id="reportStudent" required></select>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="dateFrom">Дата с</label>
+              <input type="date" id="dateFrom" required>
+            </div>
+            <div class="field">
+              <label for="dateTo">Дата по</label>
+              <input type="date" id="dateTo" required>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn" type="submit" id="reportBtn">Скачать PDF</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Студенты -->
+    <section class="view hidden" data-view="students">
+      <div class="view__head">
+        <p class="eyebrow">Справочник</p>
+        <h1>Студенты</h1>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h2 class="panel__title" id="studentFormTitle">Новый студент</h2>
+          <div id="studentResult"></div>
+          <form id="studentForm">
+            <input type="hidden" id="studentId">
+            <div class="field">
+              <label for="studentName">ФИО</label>
+              <input type="text" id="studentName" required>
+            </div>
+            <div class="field">
+              <label for="studentGroup">Группа (курс)</label>
+              <input type="text" id="studentGroup">
+            </div>
+            <div class="actions">
+              <button class="btn" type="submit">Сохранить</button>
+              <button class="btn btn--ghost hidden" type="button" id="studentCancel">Отмена</button>
+            </div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2 class="panel__title">Список · <span id="studentCount" class="mono">—</span></h2>
+          <div id="studentTable"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Мероприятия -->
+    <section class="view hidden" data-view="events">
+      <div class="view__head">
+        <p class="eyebrow">Справочник</p>
+        <h1>Мероприятия</h1>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h2 class="panel__title" id="eventFormTitle">Новое мероприятие</h2>
+          <div id="eventResult"></div>
+          <form id="eventForm">
+            <input type="hidden" id="eventId">
+            <div class="field">
+              <label for="eventName">Название</label>
+              <input type="text" id="eventName" required>
+            </div>
+            <div class="field">
+              <label for="eventLevel">Уровень</label>
+              <select id="eventLevel" required></select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="eventStart">Дата начала</label>
+                <input type="date" id="eventStart" required>
+              </div>
+              <div class="field">
+                <label for="eventEnd">Дата окончания</label>
+                <input type="date" id="eventEnd" required>
+              </div>
+            </div>
+            <div class="field check">
+              <input type="checkbox" id="eventFirstTime">
+              <label for="eventFirstTime">Организовано впервые</label>
+            </div>
+            <div class="actions">
+              <button class="btn" type="submit">Сохранить</button>
+              <button class="btn btn--ghost hidden" type="button" id="eventCancel">Отмена</button>
+            </div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2 class="panel__title">Список · <span id="eventCount" class="mono">—</span></h2>
+          <div id="eventTable"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Участия -->
+    <section class="view hidden" data-view="participations">
+      <div class="view__head">
+        <p class="eyebrow">Данные</p>
+        <h1>Участия</h1>
+        <p>Один студент — одно участие в мероприятии. Повторная запись обновляет роль и часы.</p>
+      </div>
+      <div class="stats" id="partStats"></div>
+      <div class="split">
+        <div class="panel">
+          <h2 class="panel__title" id="partFormTitle">Новое участие</h2>
+          <div id="partResult"></div>
+          <form id="partForm">
+            <input type="hidden" id="partId">
+            <div class="field">
+              <label for="partStudent">Студент</label>
+              <select id="partStudent" required></select>
+            </div>
+            <div class="field">
+              <label for="partEvent">Мероприятие</label>
+              <select id="partEvent" required></select>
+            </div>
+            <div class="field">
+              <label for="partRole">Роль</label>
+              <input type="text" id="partRole">
+            </div>
+            <div class="field">
+              <label for="partHours">Часы</label>
+              <input type="number" id="partHours" min="1" required>
+            </div>
+            <div class="actions">
+              <button class="btn" type="submit">Сохранить</button>
+              <button class="btn btn--ghost hidden" type="button" id="partCancel">Отмена</button>
+            </div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2 class="panel__title">Список · <span id="partCount" class="mono">—</span></h2>
+          <div id="partTable"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>
