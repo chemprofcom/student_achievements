@@ -1,0 +1,9 @@
+node_modules/
+.netlify/
+.DS_Store
+deno.lock
+
+# scratch test harnesses
+.*-test.ts
+.*-test.mjs
+.*-test.cjs

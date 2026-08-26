@@ -1,0 +1,11 @@
+[build]
+  publish = "public"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# No SPA catch-all rewrite: the admin console routes with URL fragments
+# (#students, #events, ...), which never reach the server. A `/*` -> /index.html
+# rule would additionally shadow the platform's own /.netlify/identity/*
+# endpoints, breaking sign-in.
