@@ -22,7 +22,7 @@
     </div>
   </aside>
   <div class="gate__main">
-    <form class="gate__form" id="loginForm" autocomplete="on">
+    <form class="gate__form" id="loginForm" data-gate-form="login" autocomplete="on">
       <p class="eyebrow">Доступ по учётной записи</p>
       <h2>Вход в систему</h2>
       <p class="gate__hint">Требуется учётная запись Netlify Identity с ролью <span class="mono">admin</span>.</p>
@@ -37,6 +37,53 @@
       </div>
       <div class="actions">
         <button class="btn" type="submit" id="loginBtn">Войти</button>
+        <button class="btn btn--ghost btn--small" type="button" id="forgotToggle">Забыли пароль?</button>
+      </div>
+    </form>
+
+    <!-- Ссылка-приглашение (#invite_token=...) заводит сюда: пароля ещё нет, его нужно задать. -->
+    <form class="gate__form hidden" id="inviteForm" data-gate-form="invite" autocomplete="off">
+      <p class="eyebrow">Приглашение</p>
+      <h2>Задайте пароль</h2>
+      <p class="gate__hint">Придумайте пароль для входа в панель.</p>
+      <div id="inviteResult"></div>
+      <div class="field">
+        <label for="invitePassword">Новый пароль</label>
+        <input type="password" id="invitePassword" name="password" required autocomplete="new-password" minlength="6">
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit" id="inviteBtn">Установить пароль и войти</button>
+      </div>
+    </form>
+
+    <!-- Ссылка восстановления (#recovery_token=...) заводит сюда. -->
+    <form class="gate__form hidden" id="recoveryForm" data-gate-form="recovery" autocomplete="off">
+      <p class="eyebrow">Восстановление доступа</p>
+      <h2>Новый пароль</h2>
+      <p class="gate__hint">Придумайте новый пароль для входа.</p>
+      <div id="recoveryResult"></div>
+      <div class="field">
+        <label for="recoveryPassword">Новый пароль</label>
+        <input type="password" id="recoveryPassword" name="password" required autocomplete="new-password" minlength="6">
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit" id="recoveryBtn">Сохранить пароль и войти</button>
+      </div>
+    </form>
+
+    <form class="gate__form hidden" id="forgotForm" data-gate-form="forgot" autocomplete="off">
+      <p class="eyebrow">Восстановление доступа</p>
+      <h2>Забыли пароль?</h2>
+      <p class="gate__hint">Укажите email учётной записи — если она существует, придёт письмо со ссылкой для
+         восстановления.</p>
+      <div id="forgotResult"></div>
+      <div class="field">
+        <label for="forgotEmail">Email</label>
+        <input type="email" id="forgotEmail" name="email" required autocomplete="username">
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit" id="forgotBtn">Отправить ссылку</button>
+        <button class="btn btn--ghost btn--small" type="button" id="forgotBack">Ко входу</button>
       </div>
     </form>
   </div>

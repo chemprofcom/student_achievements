@@ -46,7 +46,7 @@ function levelLabel(code) {
   return found ? found[1] : code;
 }
 
-async function api(path, options = {}) {
+async function api(path, options = {}, { redirectOn401 = true } = {}) {
   const response = await fetch(path, options);
   if (response.status === 401 || response.status === 403) {
     let message = "Доступ запрещён.";
@@ -54,7 +54,7 @@ async function api(path, options = {}) {
       const body = await response.clone().json();
       if (body?.error) message = body.error;
     } catch { /* non-JSON body */ }
-    if (response.status === 401) {
+    if (response.status === 401 && redirectOn401) {
       showGate(message);
       throw new Error(message);
     }
@@ -69,9 +69,20 @@ async function api(path, options = {}) {
 
 /* ---------- auth ---------- */
 
-function showGate(message) {
+function setGateForm(name) {
+  for (const form of document.querySelectorAll("[data-gate-form]")) {
+    form.classList.toggle("hidden", form.dataset.gateForm !== name);
+  }
+}
+
+function showGateForm(name) {
   shell.hidden = true;
   gate.hidden = false;
+  setGateForm(name);
+}
+
+function showGate(message) {
+  showGateForm("login");
   const box = $("loginError");
   if (message) {
     box.textContent = message;
@@ -118,6 +129,81 @@ $("logoutBtn").addEventListener("click", async () => {
     await api("/api/auth/logout", { method: "POST" });
   } catch { /* clearing the session locally is enough */ }
   showGate();
+});
+
+$("inviteForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = $("inviteBtn");
+  const token = event.currentTarget.dataset.token;
+  button.disabled = true;
+  button.textContent = "Сохранение…";
+  try {
+    const result = await api("/api/auth/accept-invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, password: $("invitePassword").value }),
+    }, { redirectOn401: false });
+    $("invitePassword").value = "";
+    showShell(result.email);
+    await bootstrap();
+    navigate("upload");
+  } catch (err) {
+    note($("inviteResult"), err.message, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Установить пароль и войти";
+  }
+});
+
+$("recoveryForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = $("recoveryBtn");
+  const token = event.currentTarget.dataset.token;
+  button.disabled = true;
+  button.textContent = "Сохранение…";
+  try {
+    const result = await api("/api/auth/recover", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, password: $("recoveryPassword").value }),
+    }, { redirectOn401: false });
+    $("recoveryPassword").value = "";
+    showShell(result.email);
+    await bootstrap();
+    navigate("upload");
+  } catch (err) {
+    note($("recoveryResult"), err.message, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Сохранить пароль и войти";
+  }
+});
+
+$("forgotToggle").addEventListener("click", () => {
+  note($("forgotResult"), "");
+  showGateForm("forgot");
+});
+
+$("forgotBack").addEventListener("click", () => showGateForm("login"));
+
+$("forgotForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = $("forgotBtn");
+  button.disabled = true;
+  button.textContent = "Отправка…";
+  try {
+    await api("/api/auth/request-recovery", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: $("forgotEmail").value }),
+    }, { redirectOn401: false });
+    note($("forgotResult"), "Если такой email зарегистрирован, письмо со ссылкой отправлено.");
+  } catch (err) {
+    note($("forgotResult"), err.message, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Отправить ссылку";
+  }
 });
 
 /* ---------- routing ---------- */
@@ -523,7 +609,29 @@ async function bootstrap() {
   await loadParticipations();
 }
 
+function consumeHashToken(name) {
+  const token = new URLSearchParams(location.hash.slice(1)).get(name);
+  if (token) history.replaceState(null, "", location.pathname + location.search);
+  return token;
+}
+
 (async function init() {
+  // Netlify Identity invite/recovery emails link back here with the token in
+  // the URL hash (e.g. #invite_token=...) — the app's own view router doesn't
+  // recognize that as a route, so it must be handled before anything else.
+  const inviteToken = consumeHashToken("invite_token");
+  if (inviteToken) {
+    $("inviteForm").dataset.token = inviteToken;
+    showGateForm("invite");
+    return;
+  }
+  const recoveryToken = consumeHashToken("recovery_token");
+  if (recoveryToken) {
+    $("recoveryForm").dataset.token = recoveryToken;
+    showGateForm("recovery");
+    return;
+  }
+
   try {
     const session = await fetch("/api/auth/session").then((r) => r.json());
     if (session.authenticated && session.isAdmin) {
