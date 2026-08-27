@@ -56,11 +56,17 @@ export default async (req: Request) => {
         );
       }
       if (err instanceof AuthError) {
-        if (err.status === 401 || err.status === 403) {
-          const message = err.status === 401
-            ? "Неверный email или пароль."
-            : "Вход запрещён для этой учётной записи.";
-          return Response.json({ error: message }, { status: err.status });
+        if (err.status === 400 || err.status === 401) {
+          const message = /not confirmed/i.test(err.message)
+            ? "Email не подтверждён. Перейдите по ссылке из письма-приглашения."
+            : "Неверный email или пароль.";
+          return Response.json({ error: message }, { status: 401 });
+        }
+        if (err.status === 403) {
+          return Response.json({ error: "Вход запрещён для этой учётной записи." }, { status: 403 });
+        }
+        if (err.status === 422) {
+          return Response.json({ error: "Некорректные данные для входа." }, { status: 422 });
         }
         console.error("Identity login failed", err);
         return Response.json(
